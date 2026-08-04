@@ -56,9 +56,9 @@ flowchart LR
   RAG --> EMB[HuggingFace Embeddings]
 ```
 
-Architecture diagram placeholder:
+Architecture diagram:
 
-![Architecture Diagram](docs/images/architecture-diagram-placeholder.png)
+![Architecture Diagram](docs/images/architecture-system-design.png)
 
 ## System Design
 
@@ -73,9 +73,9 @@ Architecture diagram placeholder:
 7. Ranking endpoint evaluates candidates against job description and returns sorted results.
 8. LLM outputs are cached to reduce repeated cost and latency.
 
-System flow diagram placeholder:
+System flow diagram:
 
-![System Design Flow](docs/images/system-design-flow-placeholder.png)
+![System Design Flow](docs/images/architecture-system-design.png)
 
 ### Core Components
 
@@ -218,49 +218,47 @@ redis-server
 - `/analysis/` - Generate candidate analysis
 - `/ranking/` - Rank candidates against a job description
 
-## UI Screenshots (Placeholders)
-
-Replace these image paths with your real screenshots.
+## UI Screenshots
 
 ### Home Page (`/`)
 
 ```md
-![Home Page](docs/images/home-page-placeholder.png)
+![Home Page](docs/images/home-control-center.png)
 ```
 
-![Home Page](docs/images/home-page-placeholder.png)
+![Home Page](docs/images/home-control-center.png)
 
 ### Upload Page (`/upload/`)
 
 ```md
-![Upload Page](docs/images/upload-page-placeholder.png)
+![Upload Page](docs/images/upload-page-feedback.png)
 ```
 
-![Upload Page](docs/images/upload-page-placeholder.png)
+![Upload Page](docs/images/upload-page-feedback.png)
 
 ### Chat Page (`/chat/`)
 
 ```md
-![Chat Page](docs/images/chat-page-placeholder.png)
+![Chat Page](docs/images/chat-page-conversation.png)
 ```
 
-![Chat Page](docs/images/chat-page-placeholder.png)
+![Chat Page](docs/images/chat-page-conversation.png)
 
 ### Analysis Page (`/analysis/`)
 
 ```md
-![Analysis Page](docs/images/analysis-page-placeholder.png)
+![Analysis Page](docs/images/analysis-page-output.png)
 ```
 
-![Analysis Page](docs/images/analysis-page-placeholder.png)
+![Analysis Page](docs/images/analysis-page-output.png)
 
 ### Ranking Page (`/ranking/`)
 
 ```md
-![Ranking Page](docs/images/ranking-page-placeholder.png)
+![Ranking Page](docs/images/ranking-page-results.png)
 ```
 
-![Ranking Page](docs/images/ranking-page-placeholder.png)
+![Ranking Page](docs/images/ranking-page-results.png)
 
 ## API Endpoints
 

@@ -1,19 +1,19 @@
-# Image Placeholders
+# Image Files Used by README
 
-Add your screenshots here and keep the same names used in the root README.md, or update the paths in README.md.
+Save the screenshots in this folder with these exact names:
 
-Current placeholder file names:
+- home-control-center.png
+- upload-page-feedback.png
+- chat-page-conversation.png
+- analysis-page-output.png
+- ranking-page-results.png
+- architecture-system-design.png
 
-- home-page-placeholder.png
-- upload-page-placeholder.png
-- chat-page-placeholder.png
-- analysis-page-placeholder.png
-- ranking-page-placeholder.png
+Optional API response screenshots (still referenced as placeholders in the README API section):
+
 - api-batches-placeholder.png
 - api-documents-placeholder.png
 - api-upload-placeholder.png
 - api-chat-placeholder.png
 - api-analyze-placeholder.png
 - api-rank-placeholder.png
-- architecture-diagram-placeholder.png
-- system-design-flow-placeholder.png
