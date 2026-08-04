@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Resume Knowledge</title>
+  <style>
+    :root {
+      --bg: #060b16;
+      --panel: #0f172a;
+      --panel-2: #111c31;
+      --text: #f8fafc;
+      --muted: #8fa0bd;
+      --accent: #4cc9f0;
+      --accent-2: #7c4dff;
+      --border: rgba(255,255,255,0.12);
+      --user: linear-gradient(90deg, #4cc9f0, #2d6cdf);
+      --assistant: #14213d;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, Segoe UI, Arial, sans-serif; color: var(--text); background: linear-gradient(135deg, #030712, #0b1330); min-height:100vh; }
+    a { color: inherit; text-decoration:none; }
+    .app { min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; }
+    .topbar { padding: 18px 24px; background: rgba(7, 11, 25, 0.95); border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,255,255,0.08); color: var(--muted); }
+    .shell { display:grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 18px; }
+    .sidebar, .chat-card { background: rgba(15, 23, 42, 0.94); border:1px solid var(--border); border-radius: 22px; padding: 18px; box-shadow: 0 20px 45px rgba(0,0,0,0.2); }
+    .sidebar h2, .chat-card h2 { margin: 0 0 8px; font-size: 1.1rem; }
+    .input { width:100%; border:1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-top: 8px; background: rgba(255,255,255,0.06); color: var(--text); }
+    textarea.input { min-height: 120px; resize: vertical; }
+    button { border:none; border-radius: 999px; padding: 10px 14px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); color:#030712; font-weight:700; cursor:pointer; }
+    .chat-window { display:flex; flex-direction:column; gap:12px; height: 100%; min-height: 520px; }
+    .messages { flex:1; overflow:auto; padding-right:6px; display:flex; flex-direction:column; gap:10px; }
+    .bubble { max-width: 78%; padding: 12px 14px; border-radius: 16px; line-height: 1.55; }
+    .bubble.user { align-self:flex-end; background: var(--user); color:#04111f; }
+    .bubble.assistant { align-self:flex-start; background: var(--assistant); color: var(--text); border:1px solid var(--border); }
+    .composer { border-top:1px solid var(--border); padding-top: 12px; display:flex; gap:10px; align-items:flex-end; }
+    .composer textarea { flex:1; min-height: 74px; }
+    .status { color: var(--muted); font-size:0.92rem; margin-bottom: 8px; }
+    .empty { color: var(--muted); padding: 24px; text-align:center; border:1px dashed var(--border); border-radius: 16px; }
+    .batch-list { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .batch-chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.84rem;
+    }
+    .batch-chip.selected { border-color: rgba(76, 201, 240, 0.9); background: rgba(76, 201, 240, 0.18); }
+    .loading-row { display:flex; align-items:center; gap:8px; color: var(--muted); margin-top: 8px; }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      flex: 0 0 auto;
+    }
+    .processing-dot {
+      display: inline-flex;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffb703;
+      margin-right: 6px;
+      animation: pulse 1.1s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+    .doc-list { margin-top: 10px; display: grid; gap: 8px; max-height: 320px; overflow: auto; padding-right: 4px; }
+    .doc-item {
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+    }
+    .doc-item:hover { transform: translateY(-1px); border-color: rgba(76, 201, 240, 0.7); }
+    .doc-item.selected {
+      border-color: rgba(76, 201, 240, 0.9);
+      background: rgba(76, 201, 240, 0.14);
+    }
+    .doc-name { font-weight: 600; }
+    .doc-meta { margin-top: 3px; color: var(--muted); font-size: 0.84rem; }
+    @media (max-width: 920px) { .shell { grid-template-columns: 1fr; } .chat-window { min-height: 420px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <div class="pill">💬 Resume chat assistant</div>
+        <h1 style="margin:8px 0 4px; font-size: 1.6rem;">Ask questions and get grounded answers</h1>
+      </div>
+      <a class="pill" href="/">← Back to overview</a>
+    </header>
+
+    <main class="shell">
+      <aside class="sidebar">
+        <h2>Conversation setup</h2>
+        <p class="status">Select one candidate, then ask a question about the selected resume.</p>
+        <label>Batches</label>
+        <div id="batchList" class="batch-list">
+          <div class="loading-row"><span class="spinner"></span><span>Loading batches...</span></div>
+        </div>
+        <label>Candidate documents</label>
+        <div id="docList" class="doc-list">
+          <div class="empty">Loading candidates...</div>
+        </div>
+        <div id="selectedDocStatus" class="status">No candidate selected.</div>
+        <label>Question</label>
+        <textarea id="question" class="input" placeholder="Summarize the candidate's front-end experience and key strengths."></textarea>
+        <button id="sendBtn" style="margin-top: 10px;">Ask assistant</button>
+        <div id="feedback" class="status" style="margin-top: 10px;"></div>
+      </aside>
+
+      <section class="chat-card">
+        <h2>Live conversation</h2>
+        <div class="chat-window">
+          <div id="messages" class="messages">
+            <div class="empty">Your chat history will appear here. Start by asking about the resume content.</div>
+          </div>
+          <div class="composer">
+            <textarea id="composerText" class="input" placeholder="Type a follow-up question..."></textarea>
+            <button id="composeBtn">Send</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const batchList = document.getElementById('batchList');
+    const docList = document.getElementById('docList');
+    const selectedDocStatus = document.getElementById('selectedDocStatus');
+    const questionInput = document.getElementById('question');
+    const composerText = document.getElementById('composerText');
+    const sendBtn = document.getElementById('sendBtn');
+    const composeBtn = document.getElementById('composeBtn');
+    const feedback = document.getElementById('feedback');
+    const messages = document.getElementById('messages');
+
+    let selectedDocumentId = null;
+    let selectedDocumentName = '';
+    let selectedBatchId = null;
+
+    function renderMessage(text, role) {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role}`;
+      bubble.textContent = text;
+      messages.appendChild(bubble);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function setFeedback(text, tone = 'info') {
+      feedback.textContent = text;
+      feedback.style.color = tone === 'error' ? '#ff6b6b' : tone === 'success' ? '#19c37d' : '#8fa0bd';
+    }
+
+    function renderDocumentList(documents) {
+      if (!documents.length) {
+        docList.innerHTML = '<div class="empty">No documents available. Upload resumes first.</div>';
+        selectedDocumentId = null;
+        selectedDocumentName = '';
+        selectedDocStatus.textContent = 'No candidate selected.';
+        return;
+      }
+
+      docList.innerHTML = documents.map((doc) => {
+        const candidateName = (doc.candidate_name || '').trim() || 'Unnamed candidate';
+        const email = doc.candidate_email || 'No email';
+        const batchName = doc.batch_name ? `Batch: ${doc.batch_name}` : 'No batch';
+        const processedStatus = doc.processed ? 'Processed' : '<span class="processing-dot"></span>Processing';
+        return `
+          <button type="button" class="doc-item" data-doc-id="${doc.id}" data-doc-name="${candidateName}">
+            <div class="doc-name">${candidateName}</div>
+            <div class="doc-meta">${email}</div>
+            <div class="doc-meta">${batchName} | ${processedStatus}</div>
+          </button>
+        `;
+      }).join('');
+
+      docList.querySelectorAll('.doc-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          docList.querySelectorAll('.doc-item').forEach((el) => el.classList.remove('selected'));
+          item.classList.add('selected');
+          selectedDocumentId = Number(item.getAttribute('data-doc-id'));
+          selectedDocumentName = item.getAttribute('data-doc-name') || 'Selected candidate';
+          selectedDocStatus.textContent = `Selected: ${selectedDocumentName} (doc #${selectedDocumentId})`;
+          setFeedback('Candidate selected. You can ask your question now.', 'success');
+        });
+      });
+    }
+
+    function renderBatchList(batches) {
+      batchList.innerHTML = '';
+
+      const allButton = document.createElement('button');
+      allButton.type = 'button';
+      allButton.className = 'batch-chip selected';
+      allButton.textContent = 'All documents';
+      allButton.setAttribute('data-batch-id', '');
+      batchList.appendChild(allButton);
+
+      batches.forEach((batch) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'batch-chip';
+        button.textContent = batch.name;
+        button.setAttribute('data-batch-id', String(batch.id));
+        batchList.appendChild(button);
+      });
+
+      batchList.querySelectorAll('.batch-chip').forEach((chip) => {
+        chip.addEventListener('click', async () => {
+          batchList.querySelectorAll('.batch-chip').forEach((el) => el.classList.remove('selected'));
+          chip.classList.add('selected');
+          const raw = chip.getAttribute('data-batch-id') || '';
+          selectedBatchId = raw ? Number(raw) : null;
+          await loadDocuments(selectedBatchId);
+        });
+      });
+    }
+
+    async function loadBatches() {
+      batchList.innerHTML = '<div class="loading-row"><span class="spinner"></span><span>Loading batches...</span></div>';
+      try {
+        const response = await fetch('/api/batches/');
+        const data = await response.json().catch(() => []);
+        if (!response.ok) {
+          throw new Error('Could not load batches.');
+        }
+        renderBatchList(Array.isArray(data) ? data : []);
+      } catch (error) {
+        batchList.innerHTML = `<div class="empty">${error.message}</div>`;
+      }
+    }
+
+    async function loadDocuments(batchId = null) {
+      docList.innerHTML = '<div class="loading-row"><span class="spinner"></span><span>Loading candidate documents...</span></div>';
+      selectedDocStatus.textContent = 'Loading candidates...';
+      try {
+        const url = batchId ? `/api/documents/?batch_id=${encodeURIComponent(batchId)}` : '/api/documents/';
+        const response = await fetch(url);
+        const data = await response.json().catch(() => []);
+        if (!response.ok) {
+          throw new Error('Could not load documents list.');
+        }
+        renderDocumentList(data);
+      } catch (error) {
+        docList.innerHTML = `<div class="empty">${error.message}</div>`;
+        selectedDocStatus.textContent = 'No candidate selected.';
+      }
+    }
+
+    async function sendChat(question) {
+      if (!question.trim()) {
+        setFeedback('Please type a question before sending.', 'error');
+        return;
+      }
+      if (!selectedDocumentId) {
+        setFeedback('Select a candidate first.', 'error');
+        return;
+      }
+      const payload = { document_id: selectedDocumentId, question: question.trim() };
+      setFeedback('Sending request…');
+      renderMessage(question.trim(), 'user');
+      const started = performance.now();
+      try {
+        const response = await fetch('/api/chat/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({ error: 'The assistant returned an unreadable response.' }));
+        const elapsed = Math.round(performance.now() - started);
+        if (!response.ok) {
+          renderMessage(data.error || 'The assistant could not answer that request.', 'assistant');
+          setFeedback(`Request failed in ${elapsed}ms.`, 'error');
+          return;
+        }
+        const answer = data.answer || data.error || 'No answer returned.';
+        renderMessage(answer, 'assistant');
+        setFeedback(`Completed in ${elapsed}ms for ${selectedDocumentName}.`, 'success');
+      } catch (error) {
+        const elapsed = Math.round(performance.now() - started);
+        renderMessage(error.message || 'The request could not be completed.', 'assistant');
+        setFeedback(`Request failed in ${elapsed}ms.`, 'error');
+      }
+    }
+
+    sendBtn.addEventListener('click', () => {
+      sendChat(questionInput.value);
+      questionInput.value = '';
+    });
+
+    composeBtn.addEventListener('click', () => {
+      sendChat(composerText.value);
+      composerText.value = '';
+    });
+
+    [questionInput, composerText].forEach((field) => {
+      field.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+          event.preventDefault();
+          sendChat(field.value);
+          field.value = '';
+        }
+      });
+    });
+
+    loadBatches().then(() => loadDocuments());
+  </script>
+</body>
+</html>

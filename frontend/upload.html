@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload PDFs</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(10, 20, 35, 0.88);
+      --panel-2: #0f1c2f;
+      --text: #eff6ff;
+      --muted: #8ea3ba;
+      --accent: #4cc9f0;
+      --accent-2: #7c4dff;
+      --success: #19c37d;
+      --warning: #ffb703;
+      --danger: #ff6b6b;
+      --border: rgba(255,255,255,0.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(140deg, #030711, #0a1830 55%, #07111f);
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+    .page { max-width: 1220px; margin: 0 auto; padding: 24px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom: 20px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,255,255,0.08); color: var(--muted); font-size: 0.9rem; }
+    .grid { display:grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; }
+    .card { background: var(--panel); border:1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.18); }
+    .card h1, .card h2 { margin: 0 0 10px; }
+    .muted { color: var(--muted); line-height: 1.45; }
+    .dropzone { margin: 16px 0 12px; border: 1.5px dashed rgba(76,201,240,0.7); border-radius: 16px; background: rgba(76,201,240,0.08); padding: 22px; text-align:center; cursor:pointer; transition: transform 0.2s ease, border-color 0.2s ease; }
+    .dropzone.dragging { transform: translateY(-2px); border-color: #fff; }
+    .dropzone strong { display:block; margin-bottom:6px; font-size:1.05rem; }
+    input[type="file"] { display:none; }
+    .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 10px; }
+    .field { display:flex; flex-direction:column; gap:8px; margin-top: 10px; }
+    .field label { color: var(--muted); font-size:0.92rem; }
+    .field input { width:100%; border:1px solid var(--border); border-radius: 12px; padding:10px 12px; background: rgba(255,255,255,0.06); color: var(--text); }
+    button { border:none; border-radius: 999px; padding: 10px 16px; font-weight:700; color:#07111f; background: linear-gradient(90deg, #4cc9f0, #7c4dff); cursor:pointer; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .stats { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .stat { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--muted); font-size: 0.9rem; }
+    .files-list { margin-top: 12px; display:grid; gap:8px; }
+    .file-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text); }
+    .file-item small { color: var(--muted); }
+    .feedback { display:grid; gap:10px; margin-top: 12px; max-height: 420px; overflow:auto; }
+    .feedback-item { border:1px solid var(--border); border-left:4px solid var(--accent); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.04); }
+    .feedback-item.success { border-left-color: var(--success); }
+    .feedback-item.error { border-left-color: var(--danger); }
+    .feedback-item.warning { border-left-color: var(--warning); }
+    .result-card { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+    .result-title { margin: 0 0 10px; font-size: 1rem; }
+    .result-list { display: grid; gap: 8px; }
+    .result-item { border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.04); padding: 9px 10px; }
+    .result-item.accepted { border-left: 4px solid var(--success); }
+    .result-item.rejected { border-left: 4px solid var(--danger); }
+    .result-item.skipped { border-left: 4px solid var(--warning); }
+    .result-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .result-status { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .result-meta { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    pre { white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; color: #dce9ff; font-size: 0.9rem; margin:0; }
+    @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div>
+        <div class="pill">📄 Upload pipeline</div>
+        <h1 style="margin:8px 0 6px; font-size: 1.8rem;">Upload resumes with instant feedback</h1>
+        <p class="muted">Queue several PDFs, see each response land in the live feed, and keep an eye on document IDs and task IDs as they move through processing.</p>
+      </div>
+      <a class="pill" href="/">← Back to overview</a>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Upload queue</h2>
+        <p class="muted">Drop in one or many PDF files and submit them to the backend. Each file receives its own status and latency update.</p>
+
+        <label class="dropzone" id="dropZone" for="fileInput">
+          <strong>Drop PDF files here or click to browse</strong>
+          <span>Supports batches of resumes for faster review.</span>
+        </label>
+        <input id="fileInput" type="file" accept="application/pdf" multiple>
+
+        <div class="field">
+          <label for="batchName">Batch name (optional)</label>
+          <input id="batchName" type="text" placeholder="e.g. Q4-hiring or 2025-08-01">
+        </div>
+
+        <div class="actions">
+          <button id="uploadBtn">Upload selected files</button>
+          <span id="selectionSummary" class="pill">No files selected</span>
+        </div>
+
+        <div class="stats">
+          <div class="stat">Queue: <strong id="queueCount">0</strong></div>
+          <div class="stat">Ready to submit: <strong id="readyCount">0</strong></div>
+        </div>
+
+        <div id="filesList" class="files-list"></div>
+
+        <div id="resultCard" class="result-card" style="display:none;"></div>
+      </section>
+
+      <aside class="card">
+        <h2>Live feedback</h2>
+        <p class="muted">Helpful status messages keep the upload process understandable even when the background task is still running.</p>
+        <div id="feedback" class="feedback"></div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const selectionSummary = document.getElementById('selectionSummary');
+    const queueCount = document.getElementById('queueCount');
+    const readyCount = document.getElementById('readyCount');
+    const filesList = document.getElementById('filesList');
+    const feedback = document.getElementById('feedback');
+    const resultCard = document.getElementById('resultCard');
+    const batchNameInput = document.getElementById('batchName');
+    let selectedFiles = [];
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function renderBatchDetails(data) {
+      const details = Array.isArray(data.details) ? data.details : [];
+      if (!details.length) {
+        resultCard.innerHTML = '<p class="muted" style="margin:0;">No per-file details were returned by the server.</p>';
+        return;
+      }
+
+      const rows = details.map((item) => {
+        const status = String(item.status || 'unknown').toLowerCase();
+        const reason = item.reason ? `<div class="result-meta">Reason: ${escapeHtml(item.reason)}</div>` : '';
+        const docMeta = item.document_id ? `<div class="result-meta">Document ID: ${escapeHtml(item.document_id)}</div>` : '';
+        const taskMeta = item.task_id ? `<div class="result-meta">Task ID: ${escapeHtml(item.task_id)}</div>` : '';
+
+        return `
+          <div class="result-item ${status}">
+            <div class="result-top">
+              <strong>${escapeHtml(item.filename || 'Unknown file')}</strong>
+              <span class="result-status">${escapeHtml(status)}</span>
+            </div>
+            ${reason}
+            ${docMeta}
+            ${taskMeta}
+          </div>
+        `;
+      }).join('');
+
+      resultCard.innerHTML = `
+        <h3 class="result-title">Per-file results</h3>
+        <div class="result-list">${rows}</div>
+      `;
+    }
+
+    function updateSelectionUI() {
+      queueCount.textContent = selectedFiles.length;
+      readyCount.textContent = selectedFiles.length;
+      selectionSummary.textContent = selectedFiles.length === 0 ? 'No files selected' : `${selectedFiles.length} ready for upload`;
+      filesList.innerHTML = '';
+      if (!selectedFiles.length) {
+        filesList.innerHTML = '<div class="file-item"><span>No files yet</span><small>Pick a PDF to begin</small></div>';
+        return;
+      }
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `<span>${index + 1}. ${file.name}</span><small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>`;
+        filesList.appendChild(item);
+      });
+    }
+
+    function addFeedback(message, tone = 'info') {
+      const item = document.createElement('div');
+      item.className = `feedback-item ${tone}`;
+      item.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong><div style="margin-top:6px;">${message}</div>`;
+      feedback.prepend(item);
+    }
+
+    function bindDropzone() {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropZone.classList.add('dragging');
+        });
+      });
+
+      ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragging'));
+      });
+
+      dropZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const incoming = Array.from(event.dataTransfer?.files || []);
+        selectedFiles = incoming.filter(file => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+        updateSelectionUI();
+        if (selectedFiles.length) {
+          addFeedback(`Dropped ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} into the upload queue.`, 'success');
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        selectedFiles = Array.from(fileInput.files || []);
+        updateSelectionUI();
+      });
+    }
+
+    bindDropzone();
+    updateSelectionUI();
+
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFiles.length) {
+        addFeedback('Choose at least one PDF before submitting the queue.', 'warning');
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      resultCard.style.display = 'none';
+      const started = performance.now();
+      addFeedback(`Uploading ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} in one request...`, 'info');
+
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append('pdf', file);
+      });
+
+      const batchName = batchNameInput.value.trim();
+      if (batchName) {
+        formData.append('batch', batchName);
+      }
+
+      try {
+        const response = await fetch('/api/upload/', { method: 'POST', body: formData });
+        const data = await response.json().catch(() => ({ error: 'The server returned an unreadable response.' }));
+        const elapsed = Math.round(performance.now() - started);
+
+        if (!response.ok) {
+          addFeedback(`Batch upload failed. ${data.error || 'Please verify the files and try again.'} (${elapsed}ms)`, 'error');
+          resultCard.style.display = 'block';
+          resultCard.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          return;
+        }
+
+        const totals = data.totals || {};
+        const accepted = Number(totals.accepted || 0);
+        const rejected = Number(totals.rejected || 0);
+        const skipped = Number(totals.skipped || 0);
+        const details = Array.isArray(data.details) ? data.details : [];
+
+        addFeedback(
+          `Batch completed in ${elapsed}ms. Accepted: ${accepted}, Rejected: ${rejected}, Skipped: ${skipped}.`,
+          accepted > 0 ? 'success' : (rejected > 0 ? 'error' : 'warning')
+        );
+
+        details.forEach((item) => {
+          const status = String(item.status || '').toLowerCase();
+          const fileLabel = item.filename || 'Unknown file';
+          if (status === 'rejected' || status === 'skipped') {
+            const reason = item.reason || 'No reason provided by the server.';
+            const tone = status === 'rejected' ? 'error' : 'warning';
+            addFeedback(`${fileLabel}: ${status.toUpperCase()} - ${reason}`, tone);
+          }
+        });
+
+        resultCard.style.display = 'block';
+        renderBatchDetails(data);
+      } catch (error) {
+        const elapsed = Math.round(performance.now() - started);
+        addFeedback(`Batch upload failed to reach the API. ${error.message} (${elapsed}ms)`, 'error');
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

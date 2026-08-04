@@ -1,0 +1,36 @@
+# --- Python Artifacts ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Virtual Environment ---
+chatbot_env/
+env/
+venv/
+.env/
+
+# --- Django Specifics ---
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# --- Environment & Secret Configuration ---
+.env
+.secrets
+secrets.json
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- OS Specifics ---
+.DS_Store
+Thumbs.db

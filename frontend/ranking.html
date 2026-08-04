@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Ranking</title>
+  <style>
+    :root {
+      --bg: #050913;
+      --panel: rgba(10, 17, 30, 0.95);
+      --text: #f6f8ff;
+      --muted: #8fa0bd;
+      --accent: #4cc9f0;
+      --accent-2: #7c4dff;
+      --border: rgba(255,255,255,0.12);
+      --success: #19c37d;
+      --warning: #ffb703;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, Segoe UI, Arial, sans-serif; color: var(--text); min-height:100vh; background: linear-gradient(135deg, #050913, #0c1b35 60%, #050913); }
+    a { color: inherit; text-decoration:none; }
+    .page { max-width: 1200px; margin:0 auto; padding:24px; }
+    .hero { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom: 16px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,255,255,0.08); color: var(--muted); }
+    .grid { display:grid; grid-template-columns: 360px 1fr; gap: 16px; }
+    .card { background: var(--panel); border:1px solid var(--border); border-radius: 22px; padding: 18px; box-shadow: 0 20px 45px rgba(0,0,0,0.2); }
+    textarea, button, select, input[type="text"] { width:100%; border-radius: 14px; border:1px solid var(--border); padding: 12px 14px; margin-top: 10px; font: inherit; }
+    textarea { min-height: 140px; resize: vertical; background: rgba(255,255,255,0.06); color: var(--text); }
+    select, input[type="text"] { background: rgba(255,255,255,0.06); color: var(--text); }
+    .field { display:flex; flex-direction:column; gap:8px; margin-top: 10px; }
+    .field label { color: var(--muted); font-size:0.92rem; }
+    button { border:none; background: linear-gradient(90deg, var(--accent), var(--accent-2)); color:#030712; font-weight:700; cursor:pointer; }
+    .status { color: var(--muted); margin-top: 10px; }
+    .rank-list { display:grid; gap: 12px; margin-top: 12px; }
+    .rank-card { border:1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 16px; padding: 14px; background: rgba(255,255,255,0.05); }
+    .rank-card h3 { margin: 0 0 6px; }
+    .rank-meta { display:flex; justify-content:space-between; align-items:center; gap:10px; color: var(--muted); font-size:0.92rem; flex-wrap:wrap; }
+    .score { font-size:1.1rem; font-weight:700; color: var(--accent); }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top: 8px; }
+    .chip { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.07); color: var(--text); font-size: 0.85rem; }
+    .chip.warn { background: rgba(255,183,3,0.16); color: #ffd166; }
+    @media (max-width: 950px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="hero">
+      <div>
+        <div class="pill">🏆 Candidate ranking</div>
+        <h1 style="margin:8px 0 6px; font-size:1.7rem;">Rank candidates by fit with clearer sorting</h1>
+        <p style="margin:0; color:var(--muted);">The ranking result is displayed as polished cards ordered by score from strongest to weakest fit.</p>
+      </div>
+      <a class="pill" href="/">← Back to overview</a>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Job fit prompt</h2>
+        <p class="status">Describe the role and its must-have requirements. The system will return ranked candidates in descending score order.</p>
+        <textarea id="jobDescription" placeholder="Senior Python engineer with experience in Django, Celery, RAG systems, and production deployments."></textarea>
+        <div class="field">
+          <label for="batchSelect">Batch scope</label>
+          <select id="batchSelect">
+            <option value="">All documents</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="batchName">Or enter a batch name</label>
+          <input id="batchName" type="text" placeholder="e.g. summer-hiring">
+        </div>
+        <button id="rankBtn">Rank candidates</button>
+        <div id="status" class="status">Waiting for a ranking request.</div>
+      </section>
+
+      <section class="card">
+        <h2>Ranked results</h2>
+        <div id="results" class="rank-list">
+          <div class="status">No ranking has been generated yet.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const jobDescriptionInput = document.getElementById('jobDescription');
+    const batchSelect = document.getElementById('batchSelect');
+    const batchNameInput = document.getElementById('batchName');
+    const rankBtn = document.getElementById('rankBtn');
+    const status = document.getElementById('status');
+    const results = document.getElementById('results');
+
+    async function loadBatches() {
+      try {
+        const response = await fetch('/api/batches/');
+        const data = await response.json().catch(() => []);
+        const batches = Array.isArray(data) ? data : [];
+        const currentValue = batchSelect.value || '';
+        batchSelect.innerHTML = '<option value="">All documents</option>';
+        batches.forEach((batch) => {
+          const option = document.createElement('option');
+          option.value = batch.name;
+          option.textContent = batch.name;
+          batchSelect.appendChild(option);
+        });
+        if (currentValue && batches.some(batch => batch.name === currentValue)) {
+          batchSelect.value = currentValue;
+        }
+      } catch (error) {
+        console.warn('Unable to load batches', error);
+      }
+    }
+
+    function renderCards(candidates) {
+      if (!candidates.length) {
+        results.innerHTML = '<div class="status">No candidates were returned by the ranking endpoint.</div>';
+        return;
+      }
+      const sorted = [...candidates].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+      results.innerHTML = sorted.map((candidate, index) => {
+        const score = Number(candidate.score) || 0;
+        const strengths = Array.isArray(candidate.strengths) ? candidate.strengths : [];
+        const missing = Array.isArray(candidate.missing_skills) ? candidate.missing_skills : [];
+        const recommendation = candidate.recommendation || 'Manual review required.';
+        const summary = candidate.summary || 'No summary was returned.';
+        return `
+          <article class="rank-card">
+            <div class="rank-meta">
+              <div>
+                <h3>${index + 1}. ${candidate.candidate_name || 'Unknown candidate'}</h3>
+                <div>${candidate.candidate_email || 'No email listed'}</div>
+              </div>
+              <div class="score">Score ${score.toFixed(1)}</div>
+            </div>
+            <p style="margin: 8px 0 0; color: #dfe8ff;">${summary}</p>
+            <div class="chips">
+              ${strengths.slice(0, 4).map(item => `<span class="chip">${item}</span>`).join('')}
+              ${missing.length ? `<span class="chip warn">Missing: ${missing.slice(0, 2).join(', ')}</span>` : ''}
+            </div>
+            <p style="margin: 8px 0 0; color: var(--muted);">${recommendation}</p>
+          </article>
+        `;
+      }).join('');
+    }
+
+    rankBtn.addEventListener('click', async () => {
+      const jobDescription = jobDescriptionInput.value.trim();
+      if (!jobDescription) {
+        status.textContent = 'Enter a job description before ranking the candidates.';
+        status.style.color = '#ff6b6b';
+        return;
+      }
+
+      rankBtn.disabled = true;
+      status.textContent = 'Ranking candidates…';
+      status.style.color = '#4cc9f0';
+      results.innerHTML = '<div class="status">Processing the ranking request…</div>';
+
+      const batchValue = batchNameInput.value.trim() || batchSelect.value;
+      const payload = { job_description: jobDescription };
+      if (batchValue) {
+        payload.batch = batchValue;
+      }
+
+      const started = performance.now();
+      try {
+        const response = await fetch('/api/resume/rank/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({ error: 'The ranking response could not be parsed.' }));
+        const elapsed = Math.round(performance.now() - started);
+        if (!response.ok) {
+          status.textContent = `The ranking request failed in ${elapsed}ms.`;
+          status.style.color = '#ff6b6b';
+          results.innerHTML = `<div class="status">${data.error || 'Could not rank candidates.'}</div>`;
+          return;
+        }
+        const candidates = Array.isArray(data) ? data : [];
+        renderCards(candidates);
+        status.textContent = `Ranking complete in ${elapsed}ms. Results are sorted by score.`;
+        status.style.color = '#19c37d';
+      } catch (error) {
+        results.innerHTML = `<div class="status">${error.message}</div>`;
+        status.textContent = 'The ranking request could not be completed.';
+        status.style.color = '#ff6b6b';
+      } finally {
+        rankBtn.disabled = false;
+      }
+    });
+
+    loadBatches();
+  </script>
+</body>
+</html>
