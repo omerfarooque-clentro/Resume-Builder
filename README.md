@@ -74,7 +74,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ```bash
 # 1) Clone
 git clone <your-repo-url>
-cd PDF-Chatbot
+cd Resume-Builder
 
 # 2) Create and activate virtual environment
 python -m venv chatbot_env
