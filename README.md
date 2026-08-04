@@ -146,8 +146,8 @@ Replace these image paths with your real screenshots.
 ```md
 )
 ```
+<img width="1366" height="768" alt="Screenshot 2026-08-04 163549" src="https://github.com/user-attachments/assets/1f053652-c0ec-4d68-a646-dd14e387ad74" />
 
-<img width="1366" height="768" alt="Screenshot 2026-08-04 163319" src="https://github.com/user-attachments/assets/e4936b71-6ecf-4e3d-ad58-423d35c65dc6" />
 
 ### Analysis Page (`/analysis/`)
 
