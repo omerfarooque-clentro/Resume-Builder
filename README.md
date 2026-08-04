@@ -129,7 +129,6 @@ Replace these image paths with your real screenshots.
 ### Home Page (`/`)
 
 ```md
-![Home Page](docs/images/home-page-placeholder.png)
 ```
 
 <img width="1366" height="768" alt="Screenshot 2026-08-04 163319" src="https://github.com/user-attachments/assets/bf1c04da-307b-428c-9ebb-1a04549a6cb9" />
@@ -137,18 +136,18 @@ Replace these image paths with your real screenshots.
 ### Upload Page (`/upload/`)
 
 ```md
-![Upload Page](docs/images/upload-page-placeholder.png)
+
 ```
 
-![<img width="1366" height="768" alt="Screenshot (49)" src="https://github.com/user-attachments/assets/e403e38a-2702-4abe-84b0-8471c7521453" /> Page](docs/images/upload-page-placeholder.png)
+<img width="1366" height="768" alt="Screenshot (49)" src="https://github.com/user-attachments/assets/e403e38a-2702-4abe-84b0-8471c7521453" /> 
 
 ### Chat Page (`/chat/`)
 
 ```md
-![Chat Page](docs/images/chat-page-placeholder.png)
+)
 ```
 
-![<img width="1366" height="768" alt="Screenshot 2026-08-04 163319" src="https://github.com/user-attachments/assets/e4936b71-6ecf-4e3d-ad58-423d35c65dc6" /> Page](docs/images/chat-page-placeholder.png)
+<img width="1366" height="768" alt="Screenshot 2026-08-04 163319" src="https://github.com/user-attachments/assets/e4936b71-6ecf-4e3d-ad58-423d35c65dc6" />
 
 ### Analysis Page (`/analysis/`)
 
@@ -156,16 +155,16 @@ Replace these image paths with your real screenshots.
 ![Analysis Page](docs/images/analysis-page-placeholder.png)
 ```
 
-![Analysi<img width="1366" height="768" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/4dd03665-9f99-4093-a0c8-4f7f5b15ef52" />
+<img width="1366" height="768" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/4dd03665-9f99-4093-a0c8-4f7f5b15ef52" />
 s Page](docs/images/analysis-page-placeholder.png)
 
 ### Ranking Page (`/ranking/`)
 
 ```md
-![Ranking Page](docs/images/ranking-page-placeholder.png)
+
 ```
 
-![Ranking Pa<img width="1366" height="768" alt="Screenshot (48)" src="https://github.com/user-attachments/assets/9cf161be-8d54-4198-912b-fd4762553326" />
+<img width="1366" height="768" alt="Screenshot (48)" src="https://github.com/user-attachments/assets/9cf161be-8d54-4198-912b-fd4762553326" />
 ge](docs/images/ranking-page-placeholder.png)
 
 ## API Endpoints
