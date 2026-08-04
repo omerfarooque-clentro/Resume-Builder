@@ -122,9 +122,7 @@ redis-server
 - `/analysis/` - Generate candidate analysis
 - `/ranking/` - Rank candidates against a job description
 
-## UI Screenshots (Placeholders)
-
-Replace these image paths with your real screenshots.
+## UI Screenshots.
 
 ### Home Page (`/`)
 
