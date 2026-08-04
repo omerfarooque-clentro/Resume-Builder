@@ -1,4 +1,4 @@
-# PDF Chatbot
+# PDF Resume Builer
 
 AI-powered resume screening app built with Django + DRF + Celery + PostgreSQL/pgvector.
 
