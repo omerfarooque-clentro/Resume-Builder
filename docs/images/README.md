@@ -15,3 +15,5 @@ Current placeholder file names:
 - api-chat-placeholder.png
 - api-analyze-placeholder.png
 - api-rank-placeholder.png
+- architecture-diagram-placeholder.png
+- system-design-flow-placeholder.png
