@@ -1,4 +1,4 @@
-# PDF Chatbot
+# PDF Resume Builer
 
 AI-powered resume screening app built with Django + DRF + Celery + PostgreSQL/pgvector.
 
@@ -40,102 +40,6 @@ Upload resume PDFs, process them into vector chunks, chat with a single candidat
 └─ requirements.txt
 ```
 
-## Architecture
-
-High-level architecture:
-
-```mermaid
-flowchart LR
-  UI[Frontend Templates] --> API[Django REST API]
-  API --> PG[(PostgreSQL + pgvector)]
-  API --> REDIS[(Redis)]
-  API --> CELERY[Celery Worker]
-  CELERY --> RAG[RAG Pipeline]
-  RAG --> PG
-  RAG --> GROQ[Groq LLM]
-  RAG --> EMB[HuggingFace Embeddings]
-```
-
-Architecture diagram:
-
-![Architecture Diagram](docs/images/architecture-system-design.png)
-
-## System Design
-
-### End-to-End Flow
-
-1. User uploads one or more PDFs from the Upload UI.
-2. API computes file hash and validates metadata (email required).
-3. API marks each file as accepted, rejected, or skipped with reason.
-4. Accepted files are queued to Celery for async processing.
-5. Worker loads PDF pages, splits text, creates embeddings, and stores chunks in pgvector.
-6. Chat and analysis endpoints retrieve relevant chunks and call the LLM.
-7. Ranking endpoint evaluates candidates against job description and returns sorted results.
-8. LLM outputs are cached to reduce repeated cost and latency.
-
-System flow diagram:
-
-![System Design Flow](docs/images/architecture-system-design.png)
-
-### Core Components
-
-- API Layer: DRF endpoints for upload, chat, analysis, ranking, and listing batches/documents.
-- Processing Layer: Celery worker for non-blocking PDF processing.
-- Retrieval Layer: Chunking + embedding + similarity retrieval from pgvector-backed store.
-- Intelligence Layer: LLM prompt orchestration for analysis, chat, and ranking.
-- Caching Layer: LLM cache table keyed by document hash and request context.
-
-## Engineering Decisions
-
-### 1) Asynchronous PDF Processing with Celery
-
-- Decision: Process accepted resumes in background tasks.
-- Why: Upload API stays responsive for large batches.
-- Trade-off: Requires Redis + worker operations and monitoring.
-
-### 2) pgvector in PostgreSQL
-
-- Decision: Store embeddings in the same primary relational database.
-- Why: Simpler deployment and transactional consistency with document metadata.
-- Trade-off: Dedicated vector databases can offer better horizontal scaling.
-
-### 3) Hash-Based Duplicate Detection
-
-- Decision: Use SHA-256 hash per uploaded file.
-- Why: Fast, deterministic duplicate prevention.
-- Trade-off: Content-level near-duplicates are not detected if binary differs.
-
-### 4) Metadata-Based Rejection Rules
-
-- Decision: Reject resumes without a valid candidate email.
-- Why: Keeps downstream ranking and communication workflows usable.
-- Trade-off: Some potentially strong candidates are filtered early.
-
-### 5) Cache LLM Outputs
-
-- Decision: Cache analysis and ranking outputs by document hash and request context.
-- Why: Reduces latency and API cost for repeated queries.
-- Trade-off: Cache invalidation logic is required when document content changes.
-
-### 6) Single-Service Django + Template UI
-
-- Decision: Keep frontend templates and backend in one Django app.
-- Why: Fast iteration, simple hosting, lower operational complexity.
-- Trade-off: Less separation than SPA + dedicated API service architecture.
-
-## Production Readiness Checklist
-
-- Set DEBUG to False and configure ALLOWED_HOSTS.
-- Move secrets to environment/secret manager.
-- Use TLS and secure reverse proxy (Nginx/Caddy).
-- Configure persistent Celery worker process manager.
-- Enable structured logging and centralized log sink.
-- Add health checks for web, worker, Redis, and database.
-- Add request throttling and upload size limits.
-- Add CI for tests and linting.
-- Add backup and restore plan for PostgreSQL.
-- Add monitoring dashboards and alerting.
-
 ## Prerequisites
 
 - Python 3.12+
@@ -170,7 +74,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ```bash
 # 1) Clone
 git clone <your-repo-url>
-cd PDF-Chatbot
+cd Resume-Builder
 
 # 2) Create and activate virtual environment
 python -m venv chatbot_env
@@ -218,47 +122,50 @@ redis-server
 - `/analysis/` - Generate candidate analysis
 - `/ranking/` - Rank candidates against a job description
 
-## UI Screenshots
+## UI Screenshots (Placeholders)
+
+Replace these image paths with your real screenshots.
 
 ### Home Page (`/`)
 
 ```md
-![Home Page](docs/images/home-control-center.png)
 ```
 
-![Home Page](docs/images/home-control-center.png)
+<img width="1366" height="768" alt="Screenshot 2026-08-04 163319" src="https://github.com/user-attachments/assets/bf1c04da-307b-428c-9ebb-1a04549a6cb9" />
 
 ### Upload Page (`/upload/`)
 
 ```md
-![Upload Page](docs/images/upload-page-feedback.png)
+
 ```
 
-![Upload Page](docs/images/upload-page-feedback.png)
+<img width="1366" height="768" alt="Screenshot (49)" src="https://github.com/user-attachments/assets/e403e38a-2702-4abe-84b0-8471c7521453" /> 
 
 ### Chat Page (`/chat/`)
 
 ```md
-![Chat Page](docs/images/chat-page-conversation.png)
+)
 ```
+<img width="1366" height="768" alt="Screenshot 2026-08-04 163549" src="https://github.com/user-attachments/assets/1f053652-c0ec-4d68-a646-dd14e387ad74" />
 
-![Chat Page](docs/images/chat-page-conversation.png)
 
 ### Analysis Page (`/analysis/`)
 
 ```md
-![Analysis Page](docs/images/analysis-page-output.png)
+![Analysis Page](docs/images/analysis-page-placeholder.png)
 ```
 
-![Analysis Page](docs/images/analysis-page-output.png)
+<img width="1366" height="768" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/4dd03665-9f99-4093-a0c8-4f7f5b15ef52" />
+s Page](docs/images/analysis-page-placeholder.png)
 
 ### Ranking Page (`/ranking/`)
 
 ```md
-![Ranking Page](docs/images/ranking-page-results.png)
+
 ```
 
-![Ranking Page](docs/images/ranking-page-results.png)
+<img width="1366" height="768" alt="Screenshot (48)" src="https://github.com/user-attachments/assets/9cf161be-8d54-4198-912b-fd4762553326" />
+ge](docs/images/ranking-page-placeholder.png)
 
 ## API Endpoints
 
