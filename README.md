@@ -122,19 +122,75 @@ redis-server
 - `/analysis/` - Generate candidate analysis
 - `/ranking/` - Rank candidates against a job description
 
+## UI Screenshots (Placeholders)
+
+Replace these image paths with your real screenshots.
+
+### Home Page (`/`)
+
+```md
+![Home Page](docs/images/home-page-placeholder.png)
+```
+
+![Home Page](docs/images/home-page-placeholder.png)
+
+### Upload Page (`/upload/`)
+
+```md
+![Upload Page](docs/images/upload-page-placeholder.png)
+```
+
+![Upload Page](docs/images/upload-page-placeholder.png)
+
+### Chat Page (`/chat/`)
+
+```md
+![Chat Page](docs/images/chat-page-placeholder.png)
+```
+
+![Chat Page](docs/images/chat-page-placeholder.png)
+
+### Analysis Page (`/analysis/`)
+
+```md
+![Analysis Page](docs/images/analysis-page-placeholder.png)
+```
+
+![Analysis Page](docs/images/analysis-page-placeholder.png)
+
+### Ranking Page (`/ranking/`)
+
+```md
+![Ranking Page](docs/images/ranking-page-placeholder.png)
+```
+
+![Ranking Page](docs/images/ranking-page-placeholder.png)
+
 ## API Endpoints
 
 Base path: `/api/`
 
 - `GET /api/batches/`
   - List all batches
+  - Screenshot placeholder:
+    ```md
+    ![GET batches response](docs/images/api-batches-placeholder.png)
+    ```
 
 - `GET /api/documents/?batch_id=<id>`
   - List candidate documents (optionally filtered by batch)
+  - Screenshot placeholder:
+    ```md
+    ![GET documents response](docs/images/api-documents-placeholder.png)
+    ```
 
 - `POST /api/upload/`
   - Multipart upload with one or more `pdf` files and optional `batch`
   - Returns totals + per-file details
+  - Screenshot placeholder:
+    ```md
+    ![POST upload response](docs/images/api-upload-placeholder.png)
+    ```
 
 - `POST /api/chat/`
   - Body:
@@ -144,6 +200,10 @@ Base path: `/api/`
       "question": "What are this candidate's strengths?"
     }
     ```
+  - Screenshot placeholder:
+    ```md
+    ![POST chat response](docs/images/api-chat-placeholder.png)
+    ```
 
 - `POST /api/resume/analyze/`
   - Body:
@@ -151,6 +211,10 @@ Base path: `/api/`
     {
       "document_id": 1
     }
+    ```
+  - Screenshot placeholder:
+    ```md
+    ![POST analyze response](docs/images/api-analyze-placeholder.png)
     ```
 
 - `POST /api/resume/rank/`
@@ -160,6 +224,10 @@ Base path: `/api/`
       "job_description": "Python backend engineer with NLP and Django",
       "batch": "Q4-hiring"
     }
+    ```
+  - Screenshot placeholder:
+    ```md
+    ![POST rank response](docs/images/api-rank-placeholder.png)
     ```
 
 ## Upload Response Format
